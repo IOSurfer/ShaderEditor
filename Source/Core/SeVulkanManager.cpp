@@ -64,6 +64,32 @@ void SeVulkanManager::createInstance() {
 }
 
 void SeVulkanManager::enumerateDevice() {
+    VkResult result;
+    uint32_t device_count = 0;
+    result = vkEnumeratePhysicalDevices(m_vulkan_instance, &device_count, nullptr);
+    m_physical_devices.resize(device_count);
+    if (result == VK_SUCCESS) {
+        result = vkEnumeratePhysicalDevices(m_vulkan_instance, &device_count, m_physical_devices.data());
+    }
+    if (result == VK_SUCCESS) {
+        qDebug() << "Physical devices detected: " << device_count << " in total";
+    } else {
+        qDebug() << "Failed to enumerate physical devices: " << result;
+    }
+    assert(result == VK_SUCCESS);
+    for (auto itr = m_physical_devices.begin(); itr != m_physical_devices.end(); itr++) {
+        VkPhysicalDeviceProperties property;
+        vkGetPhysicalDeviceProperties(*itr, &property);
+        qDebug() << property.deviceName << ":\n"
+                 << " deviceID:"
+                 << property.deviceID << "\n"
+                 << " vendorID:"
+                 << property.vendorID << "\n"
+                 << " deviceType:"
+                 << property.deviceType << "\n"
+                 << " driverVersion:"
+                 << property.driverVersion << "\n";
+    }
 }
 
 void SeVulkanManager::createLogicDevice() {

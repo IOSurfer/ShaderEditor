@@ -15,7 +15,7 @@ class SeVulkanManager {
 
   private:
     VkInstance m_vulkan_instance;
-    VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
+    std::vector<VkPhysicalDevice> m_physical_devices;
     VkDevice m_logic_device;
 };
 
