@@ -25,6 +25,7 @@ class SeVulkanManager {
     std::vector<VkPhysicalDevice> m_physical_devices;
     VkPhysicalDevice m_best_physical_device = VK_NULL_HANDLE;
     VkDevice m_logical_device = VK_NULL_HANDLE;
+    VkQueue m_graphics_queue = VK_NULL_HANDLE;
 };
 
 #endif

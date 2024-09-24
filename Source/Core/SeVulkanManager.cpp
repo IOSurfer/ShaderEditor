@@ -192,11 +192,14 @@ void SeVulkanManager::createLogicalDevice() {
         qDebug() << "Failed to create logical device!";
     }
     assert(result == VK_SUCCESS);
+
+    vkGetDeviceQueue(m_logical_device, queue_family_indices.graphic_family.value(), 0, &m_graphics_queue);
 }
 
 void SeVulkanManager::destoryLogicalDevice() {
     if (m_logical_device != VK_NULL_HANDLE) {
         vkDestroyDevice(m_logical_device, nullptr);
+        m_graphics_queue = VK_NULL_HANDLE;
         m_logical_device = VK_NULL_HANDLE;
         qDebug() << "Logic device destoryed";
     }
