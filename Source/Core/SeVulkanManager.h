@@ -13,8 +13,8 @@ class SeVulkanManager {
     void destoryInstance();
     void enumerateDevice();
     void printDeviceProperties(const VkPhysicalDevice device) const;
-    void createLogicDevice();
-    void destoryLogicDevice();
+    void createLogicalDevice();
+    void destoryLogicalDevice();
 
   private:
     bool isDeviceSuitable(const VkPhysicalDevice device) const;
@@ -24,7 +24,7 @@ class SeVulkanManager {
     VkInstance m_vulkan_instance = VK_NULL_HANDLE;
     std::vector<VkPhysicalDevice> m_physical_devices;
     VkPhysicalDevice m_best_physical_device = VK_NULL_HANDLE;
-    VkDevice m_logic_device = VK_NULL_HANDLE;
+    VkDevice m_logical_device = VK_NULL_HANDLE;
 };
 
 #endif

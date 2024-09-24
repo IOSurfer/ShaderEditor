@@ -5,7 +5,8 @@ int main() {
     vulkan_manager.printAvailableLayers();
     vulkan_manager.createInstance();
     vulkan_manager.enumerateDevice();
-    vulkan_manager.createLogicDevice();
+    vulkan_manager.createLogicalDevice();
+    vulkan_manager.destoryLogicalDevice();
     vulkan_manager.destoryInstance();
     return 0;
 }

@@ -163,7 +163,7 @@ bool SeVulkanManager::isDeviceSuitable(const VkPhysicalDevice device) const {
     return findQueueFamilies(device).isComplete();
 }
 
-void SeVulkanManager::createLogicDevice() {
+void SeVulkanManager::createLogicalDevice() {
     m_best_physical_device = getBestDevice();
     assert(m_best_physical_device != VK_NULL_HANDLE);
     SeQueueFamilyIndices queue_family_indices = findQueueFamilies(m_best_physical_device);
@@ -185,19 +185,19 @@ void SeVulkanManager::createLogicDevice() {
     device_create_info.pEnabledFeatures = &device_features;
     device_create_info.enabledExtensionCount = 0;
     device_create_info.enabledLayerCount = 0;
-    VkResult result = vkCreateDevice(m_best_physical_device, &device_create_info, nullptr, &m_logic_device);
+    VkResult result = vkCreateDevice(m_best_physical_device, &device_create_info, nullptr, &m_logical_device);
     if (result == VK_SUCCESS) {
-        qDebug() << "Logic device created";
+        qDebug() << "Logical device created";
     } else {
         qDebug() << "Failed to create logical device!";
     }
     assert(result == VK_SUCCESS);
 }
 
-void SeVulkanManager::destoryLogicDevice() {
-    if (m_logic_device != VK_NULL_HANDLE) {
-        vkDestroyDevice(m_logic_device, nullptr);
-        m_logic_device = VK_NULL_HANDLE;
-        qDebug() << "logical device destoryed";
+void SeVulkanManager::destoryLogicalDevice() {
+    if (m_logical_device != VK_NULL_HANDLE) {
+        vkDestroyDevice(m_logical_device, nullptr);
+        m_logical_device = VK_NULL_HANDLE;
+        qDebug() << "Logic device destoryed";
     }
 }
