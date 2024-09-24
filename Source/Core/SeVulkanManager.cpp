@@ -115,15 +115,11 @@ VkPhysicalDevice SeVulkanManager::getBestDevice() const {
 
         score += memory_properties.memoryHeaps[0].size / (1024 * 1024);
 
-        if (score > maxScore) {
+        if (score > maxScore && isDeviceSuitable(device)) {
             maxScore = score;
             best_device = device;
             best_device_properites = device_properties;
         }
-    }
-
-    if (!isDeviceSuitable(best_device)) {
-        best_device = VK_NULL_HANDLE;
     }
 
     if (best_device != VK_NULL_HANDLE) {
@@ -131,18 +127,20 @@ VkPhysicalDevice SeVulkanManager::getBestDevice() const {
     } else {
         qDebug() << "No suitable physical device found!";
     }
+
+    return best_device;
 }
 
 SeQueueFamilyIndices SeVulkanManager::findQueueFamilies(const VkPhysicalDevice device) const {
     SeQueueFamilyIndices indices;
     uint32_t queue_family_count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
-
     std::vector<VkQueueFamilyProperties> queue_families(queue_family_count);
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
     int i = 0;
     for (const auto &queue_family : queue_families) {
         if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            // VK_QUEUE_COMPUTE_BIT for compute shader and VK_QUEUE_TRANSFER_BIT for data transfer
             indices.graphic_family = i;
             if (indices.isComplete()) {
                 break;
@@ -158,12 +156,39 @@ bool SeVulkanManager::isDeviceSuitable(const VkPhysicalDevice device) const {
 }
 
 void SeVulkanManager::createLogicDevice() {
-    m_best_device = getBestDevice();
-    assert(m_best_device != VK_NULL_HANDLE);
-    SeQueueFamilyIndices queue_family_indices = findQueueFamilies(m_best_device);
+    m_best_physical_device = getBestDevice();
+    assert(m_best_physical_device != VK_NULL_HANDLE);
+    SeQueueFamilyIndices queue_family_indices = findQueueFamilies(m_best_physical_device);
+
+    VkDeviceQueueCreateInfo device_queue_create_info{};
+    device_queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    device_queue_create_info.queueCount = 1;
+    device_queue_create_info.queueFamilyIndex = queue_family_indices.graphic_family.value();
+    float queue_priority = 1.0f;
+    device_queue_create_info.pQueuePriorities = &queue_priority;
+    device_queue_create_info.pNext = nullptr;
+    device_queue_create_info.flags = 0;
+
+    VkDeviceCreateInfo device_create_info{};
+    device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    device_create_info.pQueueCreateInfos = &device_queue_create_info;
+    device_create_info.queueCreateInfoCount = 1;
+    VkPhysicalDeviceFeatures device_features{};
+    device_create_info.pEnabledFeatures = &device_features;
+    device_create_info.enabledExtensionCount = 0;
+    device_create_info.enabledLayerCount = 0;
+    VkResult result = vkCreateDevice(m_best_physical_device, &device_create_info, nullptr, &m_logic_device);
+    if (result == VK_SUCCESS) {
+        qDebug() << "Logic device created";
+    } else {
+        qDebug() << "Failed to create logical device!";
+    }
+    assert(result == VK_SUCCESS);
 }
 
 void SeVulkanManager::destoryInstance() {
-    vkDestroyInstance(m_vulkan_instance, nullptr);
+    if (m_vulkan_instance != VK_NULL_HANDLE) {
+        vkDestroyInstance(m_vulkan_instance, nullptr);
+    }
     qDebug() << "Vulkan instance destoryed";
 }

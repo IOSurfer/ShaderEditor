@@ -20,10 +20,10 @@ class SeVulkanManager {
   private:
     VkPhysicalDevice getBestDevice() const;
 
-    VkInstance m_vulkan_instance;
+    VkInstance m_vulkan_instance = VK_NULL_HANDLE;
     std::vector<VkPhysicalDevice> m_physical_devices;
-    VkPhysicalDevice m_best_device = VK_NULL_HANDLE;
-    VkDevice m_logic_device;
+    VkPhysicalDevice m_best_physical_device = VK_NULL_HANDLE;
+    VkDevice m_logic_device = VK_NULL_HANDLE;
 };
 
 #endif
