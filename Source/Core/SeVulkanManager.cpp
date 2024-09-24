@@ -122,6 +122,10 @@ VkPhysicalDevice SeVulkanManager::getBestDevice() const {
         }
     }
 
+    if (!isDeviceSuitable(best_device)) {
+        best_device = VK_NULL_HANDLE;
+    }
+
     if (best_device != VK_NULL_HANDLE) {
         qDebug() << "Best physical device: " << best_device_properites.deviceName;
     } else {
@@ -129,9 +133,34 @@ VkPhysicalDevice SeVulkanManager::getBestDevice() const {
     }
 }
 
+SeQueueFamilyIndices SeVulkanManager::findQueueFamilies(const VkPhysicalDevice device) const {
+    SeQueueFamilyIndices indices;
+    uint32_t queue_family_count = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
+
+    std::vector<VkQueueFamilyProperties> queue_families(queue_family_count);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
+    int i = 0;
+    for (const auto &queue_family : queue_families) {
+        if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            indices.graphic_family = i;
+            if (indices.isComplete()) {
+                break;
+            }
+        }
+        i++;
+    }
+    return indices;
+}
+
+bool SeVulkanManager::isDeviceSuitable(const VkPhysicalDevice device) const {
+    return findQueueFamilies(device).isComplete();
+}
+
 void SeVulkanManager::createLogicDevice() {
-    VkPhysicalDevice physical_device = getBestDevice();
-    assert(physical_device != VK_NULL_HANDLE);
+    m_best_device = getBestDevice();
+    assert(m_best_device != VK_NULL_HANDLE);
+    SeQueueFamilyIndices queue_family_indices = findQueueFamilies(m_best_device);
 }
 
 void SeVulkanManager::destoryInstance() {

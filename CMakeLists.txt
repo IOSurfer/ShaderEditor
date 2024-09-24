@@ -21,6 +21,7 @@ include_directories(${Vulkan_INCLUDE_DIR})
 
 set(HEADER_FILES
     Source/Core/SeVulkanManager.h
+    Source/Core/SeQueueFamilyIndices.h
 )
 
 set(SRC_FILES
