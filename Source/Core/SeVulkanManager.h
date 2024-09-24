@@ -10,14 +10,15 @@ class SeVulkanManager {
     void printAvailableExtensions() const;
     void printAvailableLayers() const;
     void createInstance();
+    void destoryInstance();
     void enumerateDevice();
     void printDeviceProperties(const VkPhysicalDevice device) const;
-    SeQueueFamilyIndices findQueueFamilies(const VkPhysicalDevice device) const;
-    bool isDeviceSuitable(const VkPhysicalDevice device) const;
     void createLogicDevice();
-    void destoryInstance();
+    void destoryLogicDevice();
 
   private:
+    bool isDeviceSuitable(const VkPhysicalDevice device) const;
+    SeQueueFamilyIndices findQueueFamilies(const VkPhysicalDevice device) const;
     VkPhysicalDevice getBestDevice() const;
 
     VkInstance m_vulkan_instance = VK_NULL_HANDLE;

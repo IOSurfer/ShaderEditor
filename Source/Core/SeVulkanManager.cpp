@@ -63,6 +63,14 @@ void SeVulkanManager::createInstance() {
     assert(result == VK_SUCCESS);
 }
 
+void SeVulkanManager::destoryInstance() {
+    if (m_vulkan_instance != VK_NULL_HANDLE) {
+        vkDestroyInstance(m_vulkan_instance, nullptr);
+        m_vulkan_instance = VK_NULL_HANDLE;
+        qDebug() << "Vulkan instance destoryed";
+    }
+}
+
 void SeVulkanManager::enumerateDevice() {
     VkResult result;
     uint32_t device_count = 0;
@@ -186,9 +194,10 @@ void SeVulkanManager::createLogicDevice() {
     assert(result == VK_SUCCESS);
 }
 
-void SeVulkanManager::destoryInstance() {
-    if (m_vulkan_instance != VK_NULL_HANDLE) {
-        vkDestroyInstance(m_vulkan_instance, nullptr);
+void SeVulkanManager::destoryLogicDevice() {
+    if (m_logic_device != VK_NULL_HANDLE) {
+        vkDestroyDevice(m_logic_device, nullptr);
+        m_logic_device = VK_NULL_HANDLE;
+        qDebug() << "logical device destoryed";
     }
-    qDebug() << "Vulkan instance destoryed";
 }
