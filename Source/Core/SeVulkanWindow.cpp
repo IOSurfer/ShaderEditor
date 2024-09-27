@@ -28,7 +28,7 @@ void SeVulkanWindow::createSurface() {
     // TODO: support other platform
     VkWin32SurfaceCreateInfoKHR create_info{};
     create_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-    create_info.hwnd = (HWND)handle();
+    create_info.hwnd = reinterpret_cast<HWND>(winId());
     create_info.hinstance = GetModuleHandle(nullptr);
     VkResult result;
     result = vkCreateWin32SurfaceKHR(m_vulkan_manager->getInstance(), &create_info, nullptr, &m_surface);
