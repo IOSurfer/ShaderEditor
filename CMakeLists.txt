@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
 
-
 project(ShaderEditor)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -22,12 +21,14 @@ include_directories(${Vulkan_INCLUDE_DIR})
 set(HEADER_FILES
     Source/Core/SeVulkanManager.h
     Source/Core/SeQueueFamilyIndices.h
+    Source/Core/SeVulkanWindow.h
 )
 
 set(SRC_FILES
     Source/main.cpp
 
     Source/Core/SeVulkanManager.cpp
+    Source/Core/SeVulkanWindow.cpp
 )
 
 add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SRC_FILES})

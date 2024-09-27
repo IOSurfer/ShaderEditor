@@ -1,7 +1,8 @@
 #include "SeVulkanManager.h"
 #include <QDebug>
 
-void SeVulkanManager::printAvailableExtensions() const {
+#pragma region Static
+void SeVulkanManager::printAvailableExtensions() {
     uint32_t extension_count = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
 
@@ -15,7 +16,7 @@ void SeVulkanManager::printAvailableExtensions() const {
     qDebug() << "\n";
 }
 
-void SeVulkanManager::printAvailableLayers() const {
+void SeVulkanManager::printAvailableLayers() {
     uint32_t layer_count;
     vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
 
@@ -28,8 +29,34 @@ void SeVulkanManager::printAvailableLayers() const {
     }
     qDebug() << "\n";
 }
+#pragma endregion Static
 
+#pragma region Init and cleanup
+
+SeVulkanManager::SeVulkanManager() {
+    init();
+}
+
+SeVulkanManager::~SeVulkanManager() {
+    cleanup();
+}
+
+void SeVulkanManager::init() {
+    createInstance();
+    enumerateDevice();
+    createLogicalDevice();
+}
+
+void SeVulkanManager::cleanup() {
+    destoryLogicalDevice();
+    destoryInstance();
+}
+
+#pragma endregion Init and cleanup
+
+#pragma region Vulkan instance
 void SeVulkanManager::createInstance() {
+    // TODO:select extensions by platform
     const char *extensions[] = {
         "VK_KHR_surface",
         "VK_KHR_win32_surface"};
@@ -71,6 +98,9 @@ void SeVulkanManager::destoryInstance() {
     }
 }
 
+#pragma endregion Vulkan instance
+
+#pragma region Physical device
 void SeVulkanManager::enumerateDevice() {
     VkResult result;
     uint32_t device_count = 0;
@@ -139,6 +169,9 @@ VkPhysicalDevice SeVulkanManager::getBestDevice() const {
     return best_device;
 }
 
+#pragma endregion Physical device
+
+#pragma region Queue family
 SeQueueFamilyIndices SeVulkanManager::findQueueFamilies(const VkPhysicalDevice device) const {
     SeQueueFamilyIndices indices;
     uint32_t queue_family_count = 0;
@@ -163,6 +196,9 @@ bool SeVulkanManager::isDeviceSuitable(const VkPhysicalDevice device) const {
     return findQueueFamilies(device).isComplete();
 }
 
+#pragma endregion Queue family
+
+#pragma region Logical device
 void SeVulkanManager::createLogicalDevice() {
     m_best_physical_device = getBestDevice();
     assert(m_best_physical_device != VK_NULL_HANDLE);
@@ -201,6 +237,8 @@ void SeVulkanManager::destoryLogicalDevice() {
         vkDestroyDevice(m_logical_device, nullptr);
         m_graphics_queue = VK_NULL_HANDLE;
         m_logical_device = VK_NULL_HANDLE;
-        qDebug() << "Logic device destoryed";
+        qDebug() << "Logical device destoryed";
     }
 }
+
+#pragma endregion Logical device

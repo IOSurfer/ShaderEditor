@@ -1,14 +1,21 @@
 #ifndef SE_VULKAN_MANAGER_H
 #define SE_VULKAN_MANAGER_H
+#define VK_USE_PLATFORM_WIN32_KHR
 
 #include "SeQueueFamilyIndices.h"
 #include <vector>
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_win32.h>
 
 class SeVulkanManager {
   public:
-    void printAvailableExtensions() const;
-    void printAvailableLayers() const;
+    static void printAvailableLayers();
+    static void printAvailableExtensions();
+
+    SeVulkanManager();
+    ~SeVulkanManager();
+    void init();
+    void cleanup();
     void createInstance();
     void destoryInstance();
     void enumerateDevice();
@@ -17,6 +24,8 @@ class SeVulkanManager {
     void destoryLogicalDevice();
 
   private:
+    SeVulkanManager(const SeVulkanManager &) = delete;
+    SeVulkanManager &operator=(const SeVulkanManager &) = delete;
     bool isDeviceSuitable(const VkPhysicalDevice device) const;
     SeQueueFamilyIndices findQueueFamilies(const VkPhysicalDevice device) const;
     VkPhysicalDevice getBestDevice() const;

@@ -1,12 +1,15 @@
 #include "Core/SeVulkanManager.h"
-int main() {
+#include "Core/SeVulkanWindow.h"
+#include <QApplication>
+
+int main(int argc, char *argv[]) {
+    QApplication app(argc, argv);
+    SeVulkanManager::printAvailableExtensions();
+    SeVulkanManager::printAvailableLayers();
     SeVulkanManager vulkan_manager;
-    vulkan_manager.printAvailableExtensions();
-    vulkan_manager.printAvailableLayers();
-    vulkan_manager.createInstance();
-    vulkan_manager.enumerateDevice();
-    vulkan_manager.createLogicalDevice();
-    vulkan_manager.destoryLogicalDevice();
-    vulkan_manager.destoryInstance();
-    return 0;
+
+    SeVulkanWindow vulkan_window(nullptr, &vulkan_manager);
+    vulkan_window.show();
+
+    return app.exec();
 }
