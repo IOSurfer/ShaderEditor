@@ -7,6 +7,7 @@ int main(int argc, char *argv[]) {
     SeVulkanManager::printAvailableExtensions();
     SeVulkanManager::printAvailableLayers();
     SeVulkanManager vulkan_manager;
+    vulkan_manager.init();
 
     SeVulkanWindow vulkan_window(nullptr, &vulkan_manager);
     vulkan_window.show();

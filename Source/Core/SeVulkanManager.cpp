@@ -34,7 +34,6 @@ void SeVulkanManager::printAvailableLayers() {
 #pragma region Init and cleanup
 
 SeVulkanManager::SeVulkanManager() {
-    init();
 }
 
 SeVulkanManager::~SeVulkanManager() {
