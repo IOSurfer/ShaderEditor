@@ -18,6 +18,7 @@ class SeVulkanManager {
     void cleanup();
     void createInstance();
     void destoryInstance();
+    VkInstance getInstance() const;
     void enumerateDevice();
     void printDeviceProperties(const VkPhysicalDevice device) const;
     void createLogicalDevice();

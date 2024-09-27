@@ -97,6 +97,10 @@ void SeVulkanManager::destoryInstance() {
     }
 }
 
+VkInstance SeVulkanManager::getInstance() const {
+    return m_vulkan_instance;
+}
+
 #pragma endregion Vulkan instance
 
 #pragma region Physical device

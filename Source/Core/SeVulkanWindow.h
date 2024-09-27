@@ -11,9 +11,14 @@ class SeVulkanWindow : public QWindow {
     SeVulkanWindow(SeVulkanManager *vulkan_manager);
     SeVulkanWindow(QWindow *parent, SeVulkanManager *vulkan_manager);
     ~SeVulkanWindow();
+    void init();
+    void cleanup();
 
   private:
+    void createSurface();
+    void destroySurface();
     SeVulkanManager *m_vulkan_manager = nullptr;
+    VkSurfaceKHR m_surface = VK_NULL_HANDLE;
 };
 
 #endif
