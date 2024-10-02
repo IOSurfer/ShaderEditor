@@ -1,5 +1,6 @@
 #include "SeVulkanManager.h"
 #include <QDebug>
+#include <set>
 
 #pragma region Static
 void SeVulkanManager::printAvailableExtensions() {
@@ -43,11 +44,11 @@ SeVulkanManager::~SeVulkanManager() {
 void SeVulkanManager::init() {
     createInstance();
     enumerateDevice();
-    createLogicalDevice();
 }
 
 void SeVulkanManager::cleanup() {
     destoryLogicalDevice();
+    setSurface(VK_NULL_HANDLE);
     destoryInstance();
 }
 
@@ -174,8 +175,16 @@ VkPhysicalDevice SeVulkanManager::getBestDevice() const {
 
 #pragma endregion Physical device
 
+#pragma region Surface
+void SeVulkanManager::setSurface(VkSurfaceKHR surface) {
+    m_surface = surface;
+}
+
+#pragma endregion Surface
+
 #pragma region Queue family
 SeQueueFamilyIndices SeVulkanManager::findQueueFamilies(const VkPhysicalDevice device) const {
+    assert(device != VK_NULL_HANDLE && m_surface != VK_NULL_HANDLE);
     SeQueueFamilyIndices indices;
     uint32_t queue_family_count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
@@ -186,9 +195,16 @@ SeQueueFamilyIndices SeVulkanManager::findQueueFamilies(const VkPhysicalDevice d
         if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             // VK_QUEUE_COMPUTE_BIT for compute shader and VK_QUEUE_TRANSFER_BIT for data transfer
             indices.graphic_family = i;
-            if (indices.isComplete()) {
-                break;
-            }
+        }
+
+        VkBool32 present_support = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface, &present_support);
+        if (present_support) {
+            indices.present_family = i;
+        }
+
+        if (indices.isComplete()) {
+            break;
         }
         i++;
     }
@@ -207,19 +223,24 @@ void SeVulkanManager::createLogicalDevice() {
     assert(m_best_physical_device != VK_NULL_HANDLE);
     SeQueueFamilyIndices queue_family_indices = findQueueFamilies(m_best_physical_device);
 
-    VkDeviceQueueCreateInfo device_queue_create_info{};
-    device_queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    device_queue_create_info.queueCount = 1;
-    device_queue_create_info.queueFamilyIndex = queue_family_indices.graphic_family.value();
+    std::vector<VkDeviceQueueCreateInfo> device_queue_create_infos;
+    std::set<uint32_t> queue_families = {queue_family_indices.graphic_family.value(), queue_family_indices.present_family.value()};
     float queue_priority = 1.0f;
-    device_queue_create_info.pQueuePriorities = &queue_priority;
-    device_queue_create_info.pNext = nullptr;
-    device_queue_create_info.flags = 0;
+    for (auto queue_family : queue_families) {
+        VkDeviceQueueCreateInfo device_queue_create_info{};
+        device_queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        device_queue_create_info.queueCount = 1;
+        device_queue_create_info.queueFamilyIndex = queue_family_indices.graphic_family.value();
+        device_queue_create_info.pQueuePriorities = &queue_priority;
+        device_queue_create_info.pNext = nullptr;
+        device_queue_create_info.flags = 0;
+        device_queue_create_infos.push_back(device_queue_create_info);
+    }
 
     VkDeviceCreateInfo device_create_info{};
     device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    device_create_info.pQueueCreateInfos = &device_queue_create_info;
-    device_create_info.queueCreateInfoCount = 1;
+    device_create_info.pQueueCreateInfos = device_queue_create_infos.data();
+    device_create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_families.size());
     VkPhysicalDeviceFeatures device_features{};
     device_create_info.pEnabledFeatures = &device_features;
     device_create_info.enabledExtensionCount = 0;
@@ -233,6 +254,7 @@ void SeVulkanManager::createLogicalDevice() {
     assert(result == VK_SUCCESS);
 
     vkGetDeviceQueue(m_logical_device, queue_family_indices.graphic_family.value(), 0, &m_graphics_queue);
+    vkGetDeviceQueue(m_logical_device, queue_family_indices.present_family.value(), 0, &m_present_queue);
 }
 
 void SeVulkanManager::destoryLogicalDevice() {

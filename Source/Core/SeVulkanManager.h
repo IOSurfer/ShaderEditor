@@ -21,6 +21,7 @@ class SeVulkanManager {
     VkInstance getInstance() const;
     void enumerateDevice();
     void printDeviceProperties(const VkPhysicalDevice device) const;
+    void setSurface(VkSurfaceKHR surface);
     void createLogicalDevice();
     void destoryLogicalDevice();
 
@@ -33,9 +34,11 @@ class SeVulkanManager {
 
     VkInstance m_vulkan_instance = VK_NULL_HANDLE;
     std::vector<VkPhysicalDevice> m_physical_devices;
+    VkSurfaceKHR m_surface = VK_NULL_HANDLE;
     VkPhysicalDevice m_best_physical_device = VK_NULL_HANDLE;
     VkDevice m_logical_device = VK_NULL_HANDLE;
     VkQueue m_graphics_queue = VK_NULL_HANDLE;
+    VkQueue m_present_queue = VK_NULL_HANDLE;
 };
 
 #endif

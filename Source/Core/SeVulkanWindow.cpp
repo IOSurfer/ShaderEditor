@@ -38,6 +38,8 @@ void SeVulkanWindow::createSurface() {
         qDebug() << "Failed to create surface!";
     }
     assert(result == VK_SUCCESS);
+    m_vulkan_manager->setSurface(m_surface);
+    m_vulkan_manager->createLogicalDevice();
 }
 
 void SeVulkanWindow::destroySurface() {
