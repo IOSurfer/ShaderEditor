@@ -27,6 +27,9 @@ class SeVulkanWindow : public QWindow {
     void createSwapChain();
     void destroySwapChain();
 
+    void createImageViews();
+    void destoryImageViews();
+
     const std::vector<const char *> m_device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
     SeVulkanManager *m_vulkan_manager = nullptr;
@@ -43,6 +46,8 @@ class SeVulkanWindow : public QWindow {
     std::vector<VkImage> m_swap_chain_images;
     VkFormat m_swap_chain_image_format;
     VkExtent2D m_swap_chain_extent;
+
+    std::vector<VkImageView> m_swap_chain_image_views;
 };
 
 #endif

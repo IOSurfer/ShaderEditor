@@ -21,9 +21,11 @@ void SeVulkanWindow::init() {
     m_best_physical_device = m_vulkan_manager->getBestDevice(m_surface, m_device_extensions);
     createLogicalDevice();
     createSwapChain();
+    createImageViews();
 }
 
 void SeVulkanWindow::cleanup() {
+    destoryImageViews();
     destroySwapChain();
     destoryLogicalDevice();
     m_best_physical_device = VK_NULL_HANDLE;
@@ -216,3 +218,42 @@ void SeVulkanWindow::destroySwapChain() {
 }
 
 #pragma endregion Swap chain
+
+#pragma region Image views
+void SeVulkanWindow::createImageViews() {
+    m_swap_chain_image_views.resize(m_swap_chain_images.size());
+    for (size_t i = 0; i < m_swap_chain_images.size(); i++) {
+        VkImageViewCreateInfo create_info{};
+        create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        create_info.image = m_swap_chain_images[i];
+        create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        create_info.format = m_swap_chain_image_format;
+        create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        create_info.subresourceRange.baseMipLevel = 0;
+        create_info.subresourceRange.levelCount = 1;
+        create_info.subresourceRange.baseArrayLayer = 0;
+        create_info.subresourceRange.layerCount = 1;
+
+        VkResult result;
+        result = vkCreateImageView(m_logical_device, &create_info, nullptr, &m_swap_chain_image_views[i]);
+        if (result == VK_SUCCESS) {
+            qDebug() << "Image view " << i << " created";
+        } else {
+            qDebug() << "Failed to create image view " << i << "!";
+        }
+        assert(result == VK_SUCCESS);
+    }
+}
+
+void SeVulkanWindow::destoryImageViews() {
+    for (size_t i = 0; i < m_swap_chain_images.size(); i++) {
+        vkDestroyImageView(m_logical_device, m_swap_chain_image_views[i], nullptr);
+        qDebug() << "Image view " << i << " destroyed";
+    }
+}
+
+#pragma endregion Image views
