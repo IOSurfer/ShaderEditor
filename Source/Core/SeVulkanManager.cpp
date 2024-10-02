@@ -181,9 +181,6 @@ bool SeVulkanManager::isDeviceSuitable(const VkPhysicalDevice device, const VkSu
     return findQueueFamilies(device, surface).isComplete() && checkDeviceExtensionSupport(device, device_extensions) && querySwapChainSupport(device, surface).isSwapChainAdequate();
 }
 
-#pragma endregion Device verification
-
-#pragma region Queue family
 SeQueueFamilyIndices SeVulkanManager::findQueueFamilies(const VkPhysicalDevice device, const VkSurfaceKHR surface) const {
     assert(device != VK_NULL_HANDLE && surface != VK_NULL_HANDLE);
 
@@ -213,9 +210,6 @@ SeQueueFamilyIndices SeVulkanManager::findQueueFamilies(const VkPhysicalDevice d
     return indices;
 }
 
-#pragma endregion Queue family
-
-#pragma region Swap chain
 bool SeVulkanManager::checkDeviceExtensionSupport(const VkPhysicalDevice device, const std::vector<const char *> &device_extensions) const {
     assert(device != VK_NULL_HANDLE);
 
@@ -257,4 +251,4 @@ SeSwapChainSupportDetails SeVulkanManager::querySwapChainSupport(const VkPhysica
     return details;
 }
 
-#pragma endregion Swap chain
+#pragma Device verification
