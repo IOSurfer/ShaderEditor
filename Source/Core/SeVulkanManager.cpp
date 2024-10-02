@@ -175,6 +175,10 @@ VkPhysicalDevice SeVulkanManager::getBestDevice() const {
     return best_device;
 }
 
+VkPhysicalDevice SeVulkanManager::getCurrentPhysicalDevice() const {
+    return m_best_physical_device;
+}
+
 #pragma endregion Physical device
 
 #pragma region Surface
@@ -271,6 +275,7 @@ SeSwapChainSupportDetails SeVulkanManager::querySwapChainSupport(const VkPhysica
 void SeVulkanManager::createLogicalDevice() {
     m_best_physical_device = getBestDevice();
     assert(m_best_physical_device != VK_NULL_HANDLE);
+
     SeQueueFamilyIndices queue_family_indices = findQueueFamilies(m_best_physical_device);
 
     std::vector<VkDeviceQueueCreateInfo> device_queue_create_infos;
@@ -315,6 +320,10 @@ void SeVulkanManager::destoryLogicalDevice() {
         m_logical_device = VK_NULL_HANDLE;
         qDebug() << "Logical device destoryed";
     }
+}
+
+VkDevice SeVulkanManager::getCurrentLogicalDevice() const {
+    return m_logical_device;
 }
 
 #pragma endregion Logical device

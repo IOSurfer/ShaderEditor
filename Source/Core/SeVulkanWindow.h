@@ -17,8 +17,18 @@ class SeVulkanWindow : public QWindow {
   private:
     void createSurface();
     void destroySurface();
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &available_formats);
+    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &available_present_modes);
+    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
+    void createSwapChain();
+    void destroySwapChain();
+
     SeVulkanManager *m_vulkan_manager = nullptr;
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
+    VkSwapchainKHR m_swap_chain = VK_NULL_HANDLE;
+    std::vector<VkImage> m_swap_chain_images;
+    VkFormat m_swap_chain_image_format;
+    VkExtent2D m_swap_chain_extent;
 };
 
 #endif

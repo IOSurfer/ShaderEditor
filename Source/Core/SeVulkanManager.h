@@ -4,6 +4,7 @@
 
 #include "SeQueueFamilyIndices.h"
 #include "SeSwapChainSupportDetails.h"
+#include <cstdint>
 #include <vector>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_win32.h>
@@ -25,15 +26,17 @@ class SeVulkanManager {
     void setSurface(const VkSurfaceKHR surface);
     void createLogicalDevice();
     void destoryLogicalDevice();
+    VkPhysicalDevice getCurrentPhysicalDevice() const;
+    VkDevice getCurrentLogicalDevice() const;
+    bool isDeviceSuitable(const VkPhysicalDevice device) const;
+    SeQueueFamilyIndices findQueueFamilies(const VkPhysicalDevice device) const;
+    SeSwapChainSupportDetails querySwapChainSupport(const VkPhysicalDevice device) const;
+    bool checkDeviceExtensionSupport(const VkPhysicalDevice device) const;
 
   private:
     SeVulkanManager(const SeVulkanManager &) = delete;
     SeVulkanManager &operator=(const SeVulkanManager &) = delete;
-    bool isDeviceSuitable(const VkPhysicalDevice device) const;
-    bool checkDeviceExtensionSupport(const VkPhysicalDevice device) const;
-    SeQueueFamilyIndices findQueueFamilies(const VkPhysicalDevice device) const;
     VkPhysicalDevice getBestDevice() const;
-    SeSwapChainSupportDetails querySwapChainSupport(const VkPhysicalDevice device) const;
 
     const std::vector<const char *> m_device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
