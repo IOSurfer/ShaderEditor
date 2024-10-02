@@ -1,8 +1,9 @@
 #include "SeVulkanManager.h"
 #include <QDebug>
 #include <set>
+#include <string>
 
-#pragma region Static
+#pragma region Print
 void SeVulkanManager::printAvailableExtensions() {
     uint32_t extension_count = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
@@ -30,6 +31,21 @@ void SeVulkanManager::printAvailableLayers() {
     }
     qDebug() << "\n";
 }
+
+void SeVulkanManager::printDeviceProperties(const VkPhysicalDevice device) {
+    VkPhysicalDeviceProperties property;
+    vkGetPhysicalDeviceProperties(device, &property);
+    qDebug() << property.deviceName << ":\n"
+             << " deviceID:"
+             << property.deviceID << "\n"
+             << " vendorID:"
+             << property.vendorID << "\n"
+             << " deviceType:"
+             << property.deviceType << "\n"
+             << " driverVersion:"
+             << property.driverVersion << "\n";
+}
+
 #pragma endregion Static
 
 #pragma region Init and cleanup
@@ -124,20 +140,6 @@ void SeVulkanManager::enumerateDevice() {
     }
 }
 
-void SeVulkanManager::printDeviceProperties(const VkPhysicalDevice device) const {
-    VkPhysicalDeviceProperties property;
-    vkGetPhysicalDeviceProperties(device, &property);
-    qDebug() << property.deviceName << ":\n"
-             << " deviceID:"
-             << property.deviceID << "\n"
-             << " vendorID:"
-             << property.vendorID << "\n"
-             << " deviceType:"
-             << property.deviceType << "\n"
-             << " driverVersion:"
-             << property.driverVersion << "\n";
-}
-
 VkPhysicalDevice SeVulkanManager::getBestDevice() const {
     VkPhysicalDevice best_device = VK_NULL_HANDLE;
     VkPhysicalDeviceProperties best_device_properites;
@@ -176,15 +178,23 @@ VkPhysicalDevice SeVulkanManager::getBestDevice() const {
 #pragma endregion Physical device
 
 #pragma region Surface
-void SeVulkanManager::setSurface(VkSurfaceKHR surface) {
+void SeVulkanManager::setSurface(const VkSurfaceKHR surface) {
     m_surface = surface;
 }
 
 #pragma endregion Surface
 
+#pragma region Device verification
+bool SeVulkanManager::isDeviceSuitable(const VkPhysicalDevice device) const {
+    return findQueueFamilies(device).isComplete() && checkDeviceExtensionSupport(device) && querySwapChainSupport(device).isSwapChainAdequate();
+}
+
+#pragma endregion Device verification
+
 #pragma region Queue family
 SeQueueFamilyIndices SeVulkanManager::findQueueFamilies(const VkPhysicalDevice device) const {
     assert(device != VK_NULL_HANDLE && m_surface != VK_NULL_HANDLE);
+
     SeQueueFamilyIndices indices;
     uint32_t queue_family_count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
@@ -211,11 +221,51 @@ SeQueueFamilyIndices SeVulkanManager::findQueueFamilies(const VkPhysicalDevice d
     return indices;
 }
 
-bool SeVulkanManager::isDeviceSuitable(const VkPhysicalDevice device) const {
-    return findQueueFamilies(device).isComplete();
+#pragma endregion Queue family
+
+#pragma region Swap chain
+bool SeVulkanManager::checkDeviceExtensionSupport(const VkPhysicalDevice device) const {
+    assert(device != VK_NULL_HANDLE);
+
+    uint32_t extension_count = 0;
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extension_count, nullptr);
+
+    std::vector<VkExtensionProperties> extensions(extension_count);
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extension_count, extensions.data());
+
+    std::set<std::string> required_extensions(m_device_extensions.begin(), m_device_extensions.end());
+
+    for (const auto &extension : extensions) {
+        required_extensions.erase(extension.extensionName);
+    }
+
+    return required_extensions.empty();
 }
 
-#pragma endregion Queue family
+SeSwapChainSupportDetails SeVulkanManager::querySwapChainSupport(const VkPhysicalDevice device) const {
+    assert(device != VK_NULL_HANDLE && m_surface != VK_NULL_HANDLE);
+
+    SeSwapChainSupportDetails details;
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, m_surface, &(details.capabilities));
+
+    uint32_t format_count = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surface, &format_count, nullptr);
+    if (format_count != 0) {
+        details.formats.resize(format_count);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surface, &format_count, details.formats.data());
+    }
+
+    uint32_t mode_count = 0;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surface, &mode_count, nullptr);
+    if (mode_count != 0) {
+        details.present_modes.resize(mode_count);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surface, &mode_count, details.present_modes.data());
+    }
+
+    return details;
+}
+
+#pragma endregion Swap chain
 
 #pragma region Logical device
 void SeVulkanManager::createLogicalDevice() {
@@ -243,7 +293,8 @@ void SeVulkanManager::createLogicalDevice() {
     device_create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_families.size());
     VkPhysicalDeviceFeatures device_features{};
     device_create_info.pEnabledFeatures = &device_features;
-    device_create_info.enabledExtensionCount = 0;
+    device_create_info.enabledExtensionCount = static_cast<uint32_t>(m_device_extensions.size());
+    device_create_info.ppEnabledExtensionNames = m_device_extensions.data();
     device_create_info.enabledLayerCount = 0;
     VkResult result = vkCreateDevice(m_best_physical_device, &device_create_info, nullptr, &m_logical_device);
     if (result == VK_SUCCESS) {

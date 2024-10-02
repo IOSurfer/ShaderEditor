@@ -3,6 +3,7 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 
 #include "SeQueueFamilyIndices.h"
+#include "SeSwapChainSupportDetails.h"
 #include <vector>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_win32.h>
@@ -11,6 +12,7 @@ class SeVulkanManager {
   public:
     static void printAvailableLayers();
     static void printAvailableExtensions();
+    static void printDeviceProperties(const VkPhysicalDevice device);
 
     SeVulkanManager();
     ~SeVulkanManager();
@@ -20,8 +22,7 @@ class SeVulkanManager {
     void destoryInstance();
     VkInstance getInstance() const;
     void enumerateDevice();
-    void printDeviceProperties(const VkPhysicalDevice device) const;
-    void setSurface(VkSurfaceKHR surface);
+    void setSurface(const VkSurfaceKHR surface);
     void createLogicalDevice();
     void destoryLogicalDevice();
 
@@ -29,8 +30,12 @@ class SeVulkanManager {
     SeVulkanManager(const SeVulkanManager &) = delete;
     SeVulkanManager &operator=(const SeVulkanManager &) = delete;
     bool isDeviceSuitable(const VkPhysicalDevice device) const;
+    bool checkDeviceExtensionSupport(const VkPhysicalDevice device) const;
     SeQueueFamilyIndices findQueueFamilies(const VkPhysicalDevice device) const;
     VkPhysicalDevice getBestDevice() const;
+    SeSwapChainSupportDetails querySwapChainSupport(const VkPhysicalDevice device) const;
+
+    const std::vector<const char *> m_device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
     VkInstance m_vulkan_instance = VK_NULL_HANDLE;
     std::vector<VkPhysicalDevice> m_physical_devices;

@@ -6,6 +6,7 @@
 struct SeQueueFamilyIndices {
     std::optional<uint32_t> graphic_family;
     std::optional<uint32_t> present_family;
+
     bool isComplete() {
         return graphic_family.has_value() && present_family.has_value();
     };
