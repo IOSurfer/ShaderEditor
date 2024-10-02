@@ -63,8 +63,6 @@ void SeVulkanManager::init() {
 }
 
 void SeVulkanManager::cleanup() {
-    destoryLogicalDevice();
-    setSurface(VK_NULL_HANDLE);
     destoryInstance();
 }
 
@@ -140,7 +138,9 @@ void SeVulkanManager::enumerateDevice() {
     }
 }
 
-VkPhysicalDevice SeVulkanManager::getBestDevice() const {
+VkPhysicalDevice SeVulkanManager::getBestDevice(const VkSurfaceKHR surface, const std::vector<const char *> &device_extensions) const {
+    assert(surface != VK_NULL_HANDLE);
+
     VkPhysicalDevice best_device = VK_NULL_HANDLE;
     VkPhysicalDeviceProperties best_device_properites;
     int maxScore = 0;
@@ -159,7 +159,7 @@ VkPhysicalDevice SeVulkanManager::getBestDevice() const {
 
         score += memory_properties.memoryHeaps[0].size / (1024 * 1024);
 
-        if (score > maxScore && isDeviceSuitable(device)) {
+        if (score > maxScore && isDeviceSuitable(device, surface, device_extensions)) {
             maxScore = score;
             best_device = device;
             best_device_properites = device_properties;
@@ -174,30 +174,18 @@ VkPhysicalDevice SeVulkanManager::getBestDevice() const {
 
     return best_device;
 }
-
-VkPhysicalDevice SeVulkanManager::getCurrentPhysicalDevice() const {
-    return m_best_physical_device;
-}
-
 #pragma endregion Physical device
 
-#pragma region Surface
-void SeVulkanManager::setSurface(const VkSurfaceKHR surface) {
-    m_surface = surface;
-}
-
-#pragma endregion Surface
-
 #pragma region Device verification
-bool SeVulkanManager::isDeviceSuitable(const VkPhysicalDevice device) const {
-    return findQueueFamilies(device).isComplete() && checkDeviceExtensionSupport(device) && querySwapChainSupport(device).isSwapChainAdequate();
+bool SeVulkanManager::isDeviceSuitable(const VkPhysicalDevice device, const VkSurfaceKHR surface, const std::vector<const char *> &device_extensions) const {
+    return findQueueFamilies(device, surface).isComplete() && checkDeviceExtensionSupport(device, device_extensions) && querySwapChainSupport(device, surface).isSwapChainAdequate();
 }
 
 #pragma endregion Device verification
 
 #pragma region Queue family
-SeQueueFamilyIndices SeVulkanManager::findQueueFamilies(const VkPhysicalDevice device) const {
-    assert(device != VK_NULL_HANDLE && m_surface != VK_NULL_HANDLE);
+SeQueueFamilyIndices SeVulkanManager::findQueueFamilies(const VkPhysicalDevice device, const VkSurfaceKHR surface) const {
+    assert(device != VK_NULL_HANDLE && surface != VK_NULL_HANDLE);
 
     SeQueueFamilyIndices indices;
     uint32_t queue_family_count = 0;
@@ -212,7 +200,7 @@ SeQueueFamilyIndices SeVulkanManager::findQueueFamilies(const VkPhysicalDevice d
         }
 
         VkBool32 present_support = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface, &present_support);
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &present_support);
         if (present_support) {
             indices.present_family = i;
         }
@@ -228,7 +216,7 @@ SeQueueFamilyIndices SeVulkanManager::findQueueFamilies(const VkPhysicalDevice d
 #pragma endregion Queue family
 
 #pragma region Swap chain
-bool SeVulkanManager::checkDeviceExtensionSupport(const VkPhysicalDevice device) const {
+bool SeVulkanManager::checkDeviceExtensionSupport(const VkPhysicalDevice device, const std::vector<const char *> &device_extensions) const {
     assert(device != VK_NULL_HANDLE);
 
     uint32_t extension_count = 0;
@@ -237,7 +225,7 @@ bool SeVulkanManager::checkDeviceExtensionSupport(const VkPhysicalDevice device)
     std::vector<VkExtensionProperties> extensions(extension_count);
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extension_count, extensions.data());
 
-    std::set<std::string> required_extensions(m_device_extensions.begin(), m_device_extensions.end());
+    std::set<std::string> required_extensions(device_extensions.begin(), device_extensions.end());
 
     for (const auto &extension : extensions) {
         required_extensions.erase(extension.extensionName);
@@ -246,84 +234,27 @@ bool SeVulkanManager::checkDeviceExtensionSupport(const VkPhysicalDevice device)
     return required_extensions.empty();
 }
 
-SeSwapChainSupportDetails SeVulkanManager::querySwapChainSupport(const VkPhysicalDevice device) const {
-    assert(device != VK_NULL_HANDLE && m_surface != VK_NULL_HANDLE);
+SeSwapChainSupportDetails SeVulkanManager::querySwapChainSupport(const VkPhysicalDevice device, const VkSurfaceKHR surface) const {
+    assert(device != VK_NULL_HANDLE && surface != VK_NULL_HANDLE);
 
     SeSwapChainSupportDetails details;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, m_surface, &(details.capabilities));
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &(details.capabilities));
 
     uint32_t format_count = 0;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surface, &format_count, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, nullptr);
     if (format_count != 0) {
         details.formats.resize(format_count);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surface, &format_count, details.formats.data());
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, details.formats.data());
     }
 
     uint32_t mode_count = 0;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surface, &mode_count, nullptr);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &mode_count, nullptr);
     if (mode_count != 0) {
         details.present_modes.resize(mode_count);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surface, &mode_count, details.present_modes.data());
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &mode_count, details.present_modes.data());
     }
 
     return details;
 }
 
 #pragma endregion Swap chain
-
-#pragma region Logical device
-void SeVulkanManager::createLogicalDevice() {
-    m_best_physical_device = getBestDevice();
-    assert(m_best_physical_device != VK_NULL_HANDLE);
-
-    SeQueueFamilyIndices queue_family_indices = findQueueFamilies(m_best_physical_device);
-
-    std::vector<VkDeviceQueueCreateInfo> device_queue_create_infos;
-    std::set<uint32_t> queue_families = {queue_family_indices.graphic_family.value(), queue_family_indices.present_family.value()};
-    float queue_priority = 1.0f;
-    for (auto queue_family : queue_families) {
-        VkDeviceQueueCreateInfo device_queue_create_info{};
-        device_queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        device_queue_create_info.queueCount = 1;
-        device_queue_create_info.queueFamilyIndex = queue_family_indices.graphic_family.value();
-        device_queue_create_info.pQueuePriorities = &queue_priority;
-        device_queue_create_info.pNext = nullptr;
-        device_queue_create_info.flags = 0;
-        device_queue_create_infos.push_back(device_queue_create_info);
-    }
-
-    VkDeviceCreateInfo device_create_info{};
-    device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    device_create_info.pQueueCreateInfos = device_queue_create_infos.data();
-    device_create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_families.size());
-    VkPhysicalDeviceFeatures device_features{};
-    device_create_info.pEnabledFeatures = &device_features;
-    device_create_info.enabledExtensionCount = static_cast<uint32_t>(m_device_extensions.size());
-    device_create_info.ppEnabledExtensionNames = m_device_extensions.data();
-    device_create_info.enabledLayerCount = 0;
-    VkResult result = vkCreateDevice(m_best_physical_device, &device_create_info, nullptr, &m_logical_device);
-    if (result == VK_SUCCESS) {
-        qDebug() << "Logical device created";
-    } else {
-        qDebug() << "Failed to create logical device!";
-    }
-    assert(result == VK_SUCCESS);
-
-    vkGetDeviceQueue(m_logical_device, queue_family_indices.graphic_family.value(), 0, &m_graphics_queue);
-    vkGetDeviceQueue(m_logical_device, queue_family_indices.present_family.value(), 0, &m_present_queue);
-}
-
-void SeVulkanManager::destoryLogicalDevice() {
-    if (m_logical_device != VK_NULL_HANDLE) {
-        vkDestroyDevice(m_logical_device, nullptr);
-        m_graphics_queue = VK_NULL_HANDLE;
-        m_logical_device = VK_NULL_HANDLE;
-        qDebug() << "Logical device destoryed";
-    }
-}
-
-VkDevice SeVulkanManager::getCurrentLogicalDevice() const {
-    return m_logical_device;
-}
-
-#pragma endregion Logical device

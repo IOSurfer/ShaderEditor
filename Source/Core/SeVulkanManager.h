@@ -19,34 +19,25 @@ class SeVulkanManager {
     ~SeVulkanManager();
     void init();
     void cleanup();
+
     void createInstance();
     void destoryInstance();
     VkInstance getInstance() const;
+
     void enumerateDevice();
-    void setSurface(const VkSurfaceKHR surface);
-    void createLogicalDevice();
-    void destoryLogicalDevice();
-    VkPhysicalDevice getCurrentPhysicalDevice() const;
-    VkDevice getCurrentLogicalDevice() const;
-    bool isDeviceSuitable(const VkPhysicalDevice device) const;
-    SeQueueFamilyIndices findQueueFamilies(const VkPhysicalDevice device) const;
-    SeSwapChainSupportDetails querySwapChainSupport(const VkPhysicalDevice device) const;
-    bool checkDeviceExtensionSupport(const VkPhysicalDevice device) const;
+
+    VkPhysicalDevice getBestDevice(const VkSurfaceKHR surface, const std::vector<const char *> &device_extensions) const;
+    bool isDeviceSuitable(const VkPhysicalDevice device, const VkSurfaceKHR surface, const std::vector<const char *> &device_extensions) const;
+    SeQueueFamilyIndices findQueueFamilies(const VkPhysicalDevice device, const VkSurfaceKHR surface) const;
+    SeSwapChainSupportDetails querySwapChainSupport(const VkPhysicalDevice device, const VkSurfaceKHR surface) const;
+    bool checkDeviceExtensionSupport(const VkPhysicalDevice device, const std::vector<const char *> &device_extensions) const;
 
   private:
     SeVulkanManager(const SeVulkanManager &) = delete;
     SeVulkanManager &operator=(const SeVulkanManager &) = delete;
-    VkPhysicalDevice getBestDevice() const;
-
-    const std::vector<const char *> m_device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
     VkInstance m_vulkan_instance = VK_NULL_HANDLE;
     std::vector<VkPhysicalDevice> m_physical_devices;
-    VkSurfaceKHR m_surface = VK_NULL_HANDLE;
-    VkPhysicalDevice m_best_physical_device = VK_NULL_HANDLE;
-    VkDevice m_logical_device = VK_NULL_HANDLE;
-    VkQueue m_graphics_queue = VK_NULL_HANDLE;
-    VkQueue m_present_queue = VK_NULL_HANDLE;
 };
 
 #endif
