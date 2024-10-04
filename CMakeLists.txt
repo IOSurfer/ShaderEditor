@@ -23,6 +23,8 @@ set(HEADER_FILES
     Source/Core/SeQueueFamilyIndices.h
     Source/Core/SeSwapChainSupportDetails.h
     Source/Core/SeVulkanWindow.h
+
+    Source/Util/SeUtil.h
 )
 
 set(SRC_FILES
@@ -30,6 +32,8 @@ set(SRC_FILES
 
     Source/Core/SeVulkanManager.cpp
     Source/Core/SeVulkanWindow.cpp
+
+    Source/Util/SeUtil.cpp
 )
 
 add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SRC_FILES})

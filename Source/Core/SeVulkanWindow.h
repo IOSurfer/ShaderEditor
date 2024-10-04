@@ -30,6 +30,13 @@ class SeVulkanWindow : public QWindow {
     void createImageViews();
     void destoryImageViews();
 
+    void createRenderPass();
+    void destroyRenderPass();
+
+    void createGraphicsPipeline();
+    void destroyGraphicsPipeline();
+    VkShaderModule createShaderModule(std::vector<char> code);
+
     const std::vector<const char *> m_device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
     SeVulkanManager *m_vulkan_manager = nullptr;
@@ -48,6 +55,13 @@ class SeVulkanWindow : public QWindow {
     VkExtent2D m_swap_chain_extent;
 
     std::vector<VkImageView> m_swap_chain_image_views;
+
+    VkRenderPass m_render_pass = VK_NULL_HANDLE;
+
+    VkShaderModule m_vert_shader_module = VK_NULL_HANDLE;
+    VkShaderModule m_frag_shader_module = VK_NULL_HANDLE;
+    VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;
+    VkPipeline m_graphics_pipeline = VK_NULL_HANDLE;
 };
 
 #endif
