@@ -298,6 +298,7 @@ void SeVulkanWindow::createRenderPass() {
     } else {
         qDebug() << "Failed to create render pass!";
     }
+    assert(result == VK_SUCCESS);
 }
 
 void SeVulkanWindow::destroyRenderPass() {
@@ -423,6 +424,7 @@ void SeVulkanWindow::createGraphicsPipeline() {
     } else {
         qDebug() << "Failed to create pipeline layout";
     }
+    assert(result == VK_SUCCESS);
 
     VkGraphicsPipelineCreateInfo pipeline_info{};
     pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -448,6 +450,7 @@ void SeVulkanWindow::createGraphicsPipeline() {
     } else {
         qDebug() << "Failed to create pipeline";
     }
+    assert(result == VK_SUCCESS);
 }
 
 void SeVulkanWindow::destroyGraphicsPipeline() {
